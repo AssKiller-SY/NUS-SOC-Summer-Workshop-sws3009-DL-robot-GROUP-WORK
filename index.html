@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control the Robot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .video-stream {
+            width: 640px;
+            height: 480px;
+            border: 1px solid #ccc;
+            margin: 0 auto 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        button {
+            width: 60px;
+            height: 60px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover, button.active {
+            background-color: #0056b3;
+        }
+        .row1 {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+        }
+        .row2 {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .response-container {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Control the Robot</h1>
+    <div class="video-stream">
+        <!-- Placeholder for video stream -->
+        <img src="stream.mjpg" width="640" height="480" />
+    </div>
+    <div class="button-container">
+        <div class="button-group">
+            <div class="row1">
+                <button id="btn-w" onclick="sendKey('w')">W</button>
+                <button id="btn-x" onclick="sendKey('x')">X</button>
+                <button id="btn-i" onclick="sendKey('i')">I</button>
+            </div>
+            <div class="row2">
+                <button id="btn-a" onclick="sendKey('a')">A</button>
+                <button id="btn-s" onclick="sendKey('s')">S</button>
+                <button id="btn-d" onclick="sendKey('d')">D</button>
+                <button id="btn-p" onclick="sendKey('p')">P</button>
+                <button id="btn-j" onclick="sendKey('j')">J</button>
+                <button id="btn-k" onclick="sendKey('k')">K</button>
+                <button id="btn-l" onclick="sendKey('l')">L</button>
+            </div>
+        </div>
+    </div>
+    <div class="response-container" id="response-container">
+        Response from server will appear here.
+    </div>
+    <script>
+        function sendKey(key) {
+            fetch('/send_key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ key: key }),
+            });
+        }
+
+        function highlightButton(key, highlight) {
+            const button = document.getElementById('btn-' + key);
+            if (button) {
+                if (highlight) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            const key = event.key.toLowerCase();
+            if (['w', 'x', 'i', 'a', 's', 'd', 'p', 'j', 'k', 'l'].includes(key)) {
+                sendKey(key);
+                highlightButton(key, true);
+            }
+        });
+
+        document.addEventListener('keyup', function(event) {
+            const key = event.key.toLowerCase();
+            if (['w', 'x', 'i', 'a', 's', 'd', 'p', 'j', 'k', 'l'].includes(key)) {
+                highlightButton(key, false);
+            }
+        });
+
+        function fetchResponse() {
+            fetch('/response')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('response-container').textContent = JSON.stringify(data);
+                })
+                .catch(error => console.error('Error fetching response:', error));
+        }
+
+        setInterval(fetchResponse, 1000);
+    </script>
+</body>
+</html>
